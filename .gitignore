@@ -7,4 +7,6 @@ __pycache__/
 .cli-session.json
 .demo-credentials.json
 output/
-.docs/
+.docs
+docs/
+docs/
