@@ -1,0 +1,9 @@
+.venv
+.env
+.git
+__pycache__
+.pytest_cache
+.cli-session.json
+.demo-credentials.json
+output
+tests

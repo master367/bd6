@@ -1,0 +1,46 @@
+services:
+  mongo:
+    image: mongo:8.0
+    ports:
+      - "127.0.0.1:${MONGO_PORT:-27018}:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  api:
+    build: .
+    image: bd6-api:latest
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/
+      MONGODB_DB: edge_catalog
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?Set DEMO_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${API_PORT:-8001}:8000"
+    volumes:
+      - ./output/docker:/project/output
+    depends_on:
+      mongo:
+        condition: service_healthy
+  tests:
+    image: bd6-api:latest
+    profiles: ["test"]
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/
+      MONGODB_TEST_URI: mongodb://mongo:27017/
+      MONGODB_DB: edge_catalog
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ./tests:/project/tests:ro
+      - ./pyproject.toml:/project/pyproject.toml:ro
+      - ./output/docker:/project/output
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: ["python", "-m", "pytest", "-q", "--junitxml=/project/output/test-results.xml"]
+volumes:
+  mongo_data:

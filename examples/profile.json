@@ -1,0 +1,9 @@
+{
+  "display_name": "Researcher",
+  "device": {
+    "signal": "eeg",
+    "memory_budget_mb": 128,
+    "max_latency_ms": 100,
+    "reference_device": "synthetic-edge-v1"
+  }
+}
