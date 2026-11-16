@@ -1,17 +1,20 @@
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from pathlib import Path
 
 import jwt
 from bson import ObjectId
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 from app.config import Settings
 from app.db import connect, initialize
 from app.queries import object_id, page, popularity_pipeline, public, ratings_pipeline, utcnow
+from app.recommender import RecommendationEngine, recommend
 from app.schemas import (
     CatalogModel,
     Category,
@@ -54,6 +57,7 @@ def admin(user=Depends(current_user)):
 
 def create_app(settings=None, database=None):
     settings = settings or Settings.from_env()
+    recommender = RecommendationEngine(settings.recommendation_cache_seconds)
 
     @asynccontextmanager
     async def lifespan(app):
@@ -69,6 +73,7 @@ def create_app(settings=None, database=None):
             initialize(db)
             app.state.db = db
             app.state.settings = settings
+            app.state.recommender = recommender
             yield
         finally:
             if client is not None:
@@ -76,13 +81,20 @@ def create_app(settings=None, database=None):
 
     api = FastAPI(
         title="Edge Drowsiness Model Catalog",
-        version="0.1.0",
+        version="1.0.0",
         description=(
             "Assignment 6: NoSQL catalog, profiles, interactions and analytics. "
             "Seeded model characteristics are synthetic, not measured research results."
         ),
         lifespan=lifespan,
     )
+
+    static = Path(__file__).resolve().parent / "static"
+    api.mount("/static", StaticFiles(directory=static), name="static")
+
+    @api.get("/", include_in_schema=False)
+    def website():
+        return FileResponse(static / "index.html", headers={"Cache-Control": "no-cache"})
 
     @api.exception_handler(PyMongoError)
     async def database_error(request, exc):
@@ -177,6 +189,7 @@ def create_app(settings=None, database=None):
             db.models.insert_one(doc)
         except DuplicateKeyError:
             raise HTTPException(409, "This slug and version already exist") from None
+        recommender.invalidate()
         return public(doc)
 
     @api.get("/models/{model_id}", tags=["catalog"])
@@ -225,6 +238,7 @@ def create_app(settings=None, database=None):
             raise HTTPException(409, "This slug and version already exist") from None
         if doc is None:
             raise HTTPException(404, "Model not found")
+        recommender.invalidate()
         return public(doc)
 
     @api.delete("/models/{model_id}", status_code=204, tags=["catalog"])
@@ -235,6 +249,7 @@ def create_app(settings=None, database=None):
         )
         if not result.matched_count:
             raise HTTPException(404, "Model not found")
+        recommender.invalidate()
         return Response(status_code=204)
 
     @api.post("/interactions", status_code=201, tags=["interactions"])
@@ -251,6 +266,7 @@ def create_app(settings=None, database=None):
             ):
                 raise HTTPException(409, "request_id was already used for a different event")
             response.status_code = 200
+            recommender.invalidate()
             return public(existing)
 
         existing = db.interactions.find_one(key)
@@ -274,6 +290,7 @@ def create_app(settings=None, database=None):
             if existing:
                 return previous(existing)
             raise
+        recommender.invalidate()
         return public(doc)
 
     @api.get("/users/me/history", tags=["interactions"])
@@ -292,24 +309,16 @@ def create_app(settings=None, database=None):
         device = user.get("device")
         if not device:
             raise HTTPException(400, "Set a device profile with PUT /users/me first")
-        query = {
-            "active": True,
-            "signals": device["signal"],
-            "requirements.reference_device": device["reference_device"],
-            "requirements.memory_mb": {"$lte": device["memory_budget_mb"]},
-            "requirements.latency_ms": {"$lte": device["max_latency_ms"]},
-        }
-        docs = list(
-            db.models.find(query)
-            .sort([("requirements.latency_ms", 1), ("requirements.memory_mb", 1), ("_id", 1)])
-            .limit(limit)
-        )
-        return {
-            "method": "constraint_filter_v1",
-            "device": device,
-            "note": "Baseline matching on one reference device; synthetic metrics are not measurements.",
-            "items": [public(doc) for doc in docs],
-        }
+        return recommend(db, user, recommender, limit)
+
+    @api.get("/recommendations/status", tags=["recommendations"])
+    def recommendation_status(user=Depends(admin)):
+        return recommender.status()
+
+    @api.post("/recommendations/rebuild", tags=["recommendations"])
+    def rebuild_recommendations(user=Depends(admin), db=Depends(get_db)):
+        recommender.snapshot(db, force=True)
+        return recommender.status()
 
     @api.get("/analytics/popular", tags=["analytics"])
     def popular(

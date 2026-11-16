@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Каталог моделей для анализа сонливости. Подбор по сигналу, памяти и задержке вашего периферийного устройства.">
+  <title>Edge Catalog — модели для вашего устройства</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">К содержимому</a>
+  <header class="header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Edge Catalog — главная"><span class="brand-mark" aria-hidden="true">e<span>.</span></span><span>edge<span class="brand-light">catalog</span></span></a>
+      <nav class="nav" aria-label="Главная навигация">
+        <button class="nav-link active" data-page="catalog" aria-current="page">Каталог</button>
+        <button class="nav-link" data-page="recommendations">Подбор</button>
+        <button class="nav-link" data-page="history">История</button>
+        <button class="nav-link" data-page="analytics">Аналитика</button>
+      </nav>
+      <div id="account" class="account"><button class="button button-dark button-small" data-action="login">Войти <span aria-hidden="true">↗</span></button></div>
+    </div>
+  </header>
+
+  <main id="main" class="container" tabindex="-1">
+    <section id="hero" class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="red-dot"></span> TIME SERIES / EDGE COMPUTING</p>
+        <h1 id="hero-title">Модель под ваше<br>устройство<span class="red">.</span></h1>
+        <p class="hero-description">Находите модели для анализа сонливости.<br class="desktop-break"> Сравнивайте сигналы, память и задержку — в одном каталоге.</p>
+        <button class="button button-dark" id="hero-cta">Подобрать модель <span aria-hidden="true">↗</span></button>
+        <span class="hero-caption">Начните с параметров вашего устройства</span>
+      </div>
+      <div class="signal-panel" aria-label="Декоративная схема анализа временного ряда">
+        <div class="signal-top"><span><span class="red-dot"></span> SIGNAL INPUT</span><span>01 / EEG</span></div>
+        <svg class="waveform" viewBox="0 0 480 160" fill="none" aria-hidden="true">
+          <defs><pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" stroke="#e9e9e9" stroke-width="1"/></pattern></defs>
+          <rect width="480" height="160" fill="url(#grid)"/>
+          <path d="M0 80H28L35 73L42 89L50 77L58 81H72L81 65L88 95L96 80H113L120 75L127 84L136 79H146L155 61L165 102L177 78H189L196 84L205 57L214 110L226 20L239 144L252 53L261 91L270 76H286L294 82L302 70L310 90L318 77H335L344 59L352 99L363 79H381L389 73L398 85L407 78H425L434 70L443 88L453 80H480" stroke="#cc2929" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        <div class="signal-flow"><span>Сигнал</span><span aria-hidden="true">→</span><span>Ограничения</span><span aria-hidden="true">→</span><strong>Модель</strong></div>
+        <div class="signal-foot"><span>ПОДБОР ПО ПАРАМЕТРАМ</span><span class="mono">EDGE / 001</span></div>
+      </div>
+    </section>
+
+    <section id="page-catalog" class="page" aria-labelledby="catalog-title">
+      <div class="section-heading"><div><p class="eyebrow">ИССЛЕДУЙТЕ ВОЗМОЖНОСТИ</p><h2 id="catalog-title">Каталог моделей<span class="red"> /</span></h2></div><button class="button button-outline button-small" id="add-model" hidden>+ Добавить модель</button></div>
+      <div class="catalog-layout">
+        <aside class="filters">
+          <form id="filters-form">
+            <div class="filter-heading"><h3>Фильтры</h3><button class="text-button muted" type="button" id="reset-filters">Сбросить</button></div>
+            <fieldset><legend>Тип сигнала</legend><div class="signal-options" id="signal-options">
+              <label><input type="radio" name="signal" value="" checked><span>Все</span></label>
+              <label><input type="radio" name="signal" value="eeg"><span>EEG</span></label>
+              <label><input type="radio" name="signal" value="ecg"><span>ECG</span></label>
+              <label><input type="radio" name="signal" value="eog"><span>EOG</span></label>
+              <label><input type="radio" name="signal" value="imu"><span>IMU</span></label>
+              <label><input type="radio" name="signal" value="video_features"><span>Видео</span></label>
+            </div></fieldset>
+            <label class="field">Метод<select name="category"><option value="">Все методы</option><option value="classical_ml">Классическое ML</option><option value="deep_learning">Глубокое обучение</option><option value="hybrid">Гибридный</option></select></label>
+            <label class="field">Память, до <span class="field-unit">МБ</span><input name="max_memory_mb" type="number" min="0.001" max="1000000" step="any" placeholder="Без ограничений"></label>
+            <label class="field">Задержка, до <span class="field-unit">мс</span><input name="max_latency_ms" type="number" min="0.001" max="1000000" step="any" placeholder="Без ограничений"></label>
+            <label class="field">Эталонное устройство<input name="reference_device" maxlength="100" placeholder="Любое устройство"></label>
+            <button class="button button-dark full-width" type="submit">Применить <span aria-hidden="true">→</span></button>
+          </form>
+          <div class="filter-note"><span class="red-dot"></span><p>Учебный каталог.<br>Синтетические метрики помечены в карточках моделей.</p></div>
+        </aside>
+        <div class="catalog-content">
+          <form id="search-form" class="search-form" role="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 5 5" stroke="currentColor" stroke-width="1.6"/></svg><input id="search" type="search" maxlength="100" aria-label="Поиск моделей" placeholder="Название, описание или тег…"><button type="submit" class="text-button">Найти <span aria-hidden="true">↵</span></button></form>
+          <div class="results-meta"><span id="results-count" role="status">Загружаем каталог…</span><span>Сначала новые</span></div>
+          <div id="catalog-state"></div><div id="catalog-grid" class="model-grid" aria-label="Модели"></div>
+          <div class="load-more"><button id="catalog-more" class="button button-outline" hidden>Показать ещё <span aria-hidden="true">↓</span></button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-recommendations" class="page" aria-labelledby="recommendations-title" hidden>
+      <div class="section-heading"><div><p class="eyebrow">ВАШИ ПРЕДПОЧТЕНИЯ → ВАША МОДЕЛЬ</p><h1 id="recommendations-title">Персональный подбор<span class="red">.</span></h1><p class="section-description">Рекомендации по вашим действиям и интересам похожих пользователей с учётом параметров устройства.</p></div><div class="recommendation-actions"><button class="button button-outline button-small" id="refresh-recommendations">Обновить ↻</button><button class="button button-outline button-small" data-action="profile">Настроить устройство ↗</button></div></div>
+      <div id="device-summary"></div><div id="recommendations-state"></div><div id="recommendations-grid" class="model-grid wide-grid"></div>
+    </section>
+
+    <section id="page-history" class="page" aria-labelledby="history-title" hidden>
+      <div class="section-heading"><div><p class="eyebrow">ВАША АКТИВНОСТЬ</p><h1 id="history-title">История действий<span class="red">.</span></h1><p class="section-description">Просмотры, сохранения, выбор моделей и оценки вашего аккаунта.</p></div><button class="button button-outline button-small" id="refresh-history">Обновить ↻</button></div>
+      <div id="history-state"></div><div id="history-list" class="history-list"></div><div class="load-more"><button class="button button-outline" id="history-more" hidden>Показать ещё ↓</button></div>
+    </section>
+
+    <section id="page-analytics" class="page" aria-labelledby="analytics-title" hidden>
+      <div class="section-heading"><div><p class="eyebrow">КАТАЛОГ В ЦИФРАХ</p><h1 id="analytics-title">Активность сообщества<span class="red">.</span></h1><p class="section-description">Популярность за 30 дней и последние оценки каждого пользователя.</p></div><button class="button button-outline button-small" id="refresh-analytics">Обновить ↻</button></div>
+      <div id="analytics-state"></div><div id="analytics-content" class="analytics-grid"></div>
+    </section>
+    <footer class="footer"><span class="footer-brand">edgecatalog<span class="red">.</span></span><span>Модели анализа сонливости для периферийных устройств</span><a href="/docs" target="_blank" rel="noopener">API ↗</a></footer>
+  </main>
+
+  <dialog id="auth-dialog" class="dialog auth-dialog" aria-labelledby="auth-title">
+    <button class="close-button" data-close aria-label="Закрыть">×</button>
+    <p class="eyebrow"><span class="red-dot"></span> ЛИЧНЫЙ КАБИНЕТ</p><h2 id="auth-title">С возвращением<span class="red">.</span></h2>
+    <p class="dialog-description" id="auth-description">Войдите, чтобы подбирать модели и сохранять историю.</p>
+    <div class="auth-tabs" role="group" aria-label="Вход или регистрация"><button type="button" class="active" id="login-tab">Вход</button><button type="button" id="register-tab">Регистрация</button></div>
+    <form id="auth-form">
+      <label class="field" id="register-name-field" hidden>Ваше имя<input name="display_name" autocomplete="name" maxlength="80"></label>
+      <label class="field">Email<input name="email" type="email" autocomplete="username" maxlength="254" required placeholder="you@example.com"></label>
+      <label class="field">Пароль<input name="password" type="password" autocomplete="current-password" maxlength="128" required placeholder="Введите пароль"></label>
+      <p id="password-help" class="form-help" hidden>От 10 символов, без пробелов в начале и конце.</p>
+      <div id="auth-error" class="form-error" role="alert" hidden></div><button class="button button-red full-width" id="auth-submit" type="submit">Войти →</button>
+    </form>
+  </dialog>
+
+  <dialog id="profile-dialog" class="dialog" aria-labelledby="profile-title">
+    <button class="close-button" data-close aria-label="Закрыть">×</button><p class="eyebrow">ПЕРСОНАЛЬНЫЙ ПОДБОР</p><h2 id="profile-title">Ваше устройство<span class="red">.</span></h2>
+    <p class="dialog-description">Укажите ограничения. Подбор покажет совместимые модели с учётом ваших интересов. Пока истории недостаточно, модели сортируются по задержке.</p>
+    <form id="profile-form">
+      <label class="field">Ваше имя<input name="display_name" maxlength="80" required autocomplete="name"></label>
+      <label class="field">Тип сигнала<select name="signal"><option value="eeg">EEG — электроэнцефалограмма</option><option value="ecg">ECG — электрокардиограмма</option><option value="eog">EOG — электроокулограмма</option><option value="imu">IMU — движение</option><option value="video_features">Признаки из видео</option></select></label>
+      <div class="form-row"><label class="field">Бюджет памяти, МБ<input name="memory_budget_mb" type="number" min="0.001" max="1000000" step="any" required></label><label class="field">Макс. задержка, мс<input name="max_latency_ms" type="number" min="0.001" max="1000000" step="any" required></label></div>
+      <label class="field">Эталонное устройство<input name="reference_device" maxlength="100" required placeholder="synthetic-edge-v1"></label>
+      <p class="form-help">Идентификатор должен совпадать с устройством в карточке модели. Для учебных данных: synthetic-edge-v1.</p>
+      <div id="profile-error" class="form-error" role="alert" hidden></div><button class="button button-red full-width" type="submit">Сохранить и подобрать →</button>
+    </form>
+  </dialog>
+
+  <dialog id="model-dialog" class="dialog model-dialog" aria-labelledby="model-title"><button class="close-button" data-close aria-label="Закрыть">×</button><div id="model-detail"></div></dialog>
+
+  <dialog id="editor-dialog" class="dialog editor-dialog" aria-labelledby="editor-title"><button class="close-button" data-close aria-label="Закрыть">×</button><p class="eyebrow">УПРАВЛЕНИЕ КАТАЛОГОМ</p><h2 id="editor-title">Новая модель<span class="red">.</span></h2>
+    <form id="editor-form">
+      <label class="field">Название<input name="name" maxlength="120" required></label>
+      <div class="form-row"><label class="field">Slug<input name="slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="120" required placeholder="my-eeg-model"></label><label class="field">Версия<input name="version" maxlength="30" required placeholder="1.0"></label></div>
+      <label class="field">Описание<textarea name="description" maxlength="4000" rows="3" required></textarea></label>
+      <label class="field">Метод<select name="category"><option value="classical_ml">Классическое ML</option><option value="deep_learning">Глубокое обучение</option><option value="hybrid">Гибридный</option></select></label>
+      <fieldset class="editor-signals"><legend>Сигналы (хотя бы один)</legend><label><input type="checkbox" name="signals" value="eeg"> EEG</label><label><input type="checkbox" name="signals" value="ecg"> ECG</label><label><input type="checkbox" name="signals" value="eog"> EOG</label><label><input type="checkbox" name="signals" value="imu"> IMU</label><label><input type="checkbox" name="signals" value="video_features"> Видео</label></fieldset>
+      <label class="field">Теги через запятую<input name="tags" placeholder="eeg, edge, synthetic"></label>
+      <div class="form-row"><label class="field">Память, МБ<input name="memory_mb" type="number" min="0.001" max="1000000" step="any" required></label><label class="field">Задержка, мс<input name="latency_ms" type="number" min="0.001" max="1000000" step="any" required></label></div>
+      <label class="field">Эталонное устройство<input name="reference_device" maxlength="100" required></label>
+      <div class="form-row"><label class="field">F1 (от 0 до 1)<input name="f1" type="number" min="0" max="1" step="any" required></label><label class="field">Датасет<input name="dataset" maxlength="100" required></label></div>
+      <label class="field">Протокол оценки<input name="protocol" maxlength="200" required></label>
+      <label class="checkbox-label"><input name="synthetic" type="checkbox" checked> Синтетические характеристики</label>
+      <div id="editor-error" class="form-error" role="alert" hidden></div><button type="submit" class="button button-red full-width">Сохранить модель →</button>
+    </form>
+  </dialog>
+  <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
+</body>
+</html>

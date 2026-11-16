@@ -207,6 +207,11 @@ def main():
     seed_parser.add_argument("--models", type=int, default=60)
     seed_parser.add_argument("--interactions", type=int, default=10000)
     seed_parser.add_argument("--seed", type=int, default=7)
+    cf_parser = sub.add_parser("seed-cf", help="Add sparse collaborative preference cohorts")
+    cf_parser.add_argument("--users", type=int, default=120)
+    cf_parser.add_argument("--models", type=int, default=60)
+    cf_parser.add_argument("--interactions", type=int, default=12000)
+    cf_parser.add_argument("--seed", type=int, default=42)
     bench = sub.add_parser("benchmark")
     bench.add_argument("--output", default="output/benchmark.json")
     bench.add_argument("--repetitions", type=int, default=5, choices=range(1, 21))
@@ -220,6 +225,10 @@ def main():
             print("Collections, validators and indexes initialized.")
         elif args.command == "seed":
             seed(db, args.users, args.models, args.interactions, args.seed)
+        elif args.command == "seed-cf":
+            from app.cf_data import seed_cf
+
+            print(json.dumps(seed_cf(db, args.users, args.models, args.interactions, args.seed)))
         elif args.command == "benchmark":
             benchmark(db, args.output, args.repetitions)
         elif args.command == "create-admin":

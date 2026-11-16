@@ -160,5 +160,9 @@ def initialize(db):
                 [("user_id", 1), ("request_id", 1)], unique=True, name="unique_user_request"
             ),
             IndexModel([("created_at", 1), ("type", 1)], name="analytics_time"),
+            IndexModel(
+                [("user_id", 1), ("model_id", 1)],
+                name="user_model_preferences",
+            ),
         ]
     )

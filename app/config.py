@@ -12,6 +12,11 @@ class Settings:
     mongo_uri: str
     database: str
     jwt_secret: str
+    recommendation_cache_seconds: float = 60.0
+
+    def __post_init__(self):
+        if not 0 <= self.recommendation_cache_seconds <= 3600:
+            raise ValueError("RECOMMENDATION_CACHE_SECONDS must be between 0 and 3600")
 
     @classmethod
     def from_env(cls):
@@ -20,6 +25,7 @@ class Settings:
             mongo_uri=os.getenv("MONGODB_URI", "mongodb://127.0.0.1:27017/"),
             database=os.getenv("MONGODB_DB", "edge_catalog"),
             jwt_secret=os.getenv("JWT_SECRET", ""),
+            recommendation_cache_seconds=float(os.getenv("RECOMMENDATION_CACHE_SECONDS", "60")),
         )
 
     def check_secret(self):

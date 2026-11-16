@@ -1,0 +1,26 @@
+{
+  "name": "Defense EEG Model Updated",
+  "slug": "defense-eeg-model",
+  "version": "1.0",
+  "description": "Synthetic model for demonstrating the database and API.",
+  "category": "classical_ml",
+  "signals": [
+    "eeg"
+  ],
+  "tags": [
+    "synthetic",
+    "eeg",
+    "edge"
+  ],
+  "requirements": {
+    "memory_mb": 24,
+    "latency_ms": 12,
+    "reference_device": "synthetic-edge-v1"
+  },
+  "evaluation": {
+    "f1": 0.82,
+    "dataset": "synthetic-v1",
+    "protocol": "Simulated values, not real experimental results"
+  },
+  "synthetic": true
+}

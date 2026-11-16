@@ -2,6 +2,7 @@ import argparse
 import getpass
 import json
 import os
+import sys
 from pathlib import Path
 from uuid import uuid4
 
@@ -29,6 +30,8 @@ def login(client, email, password):
 
 
 def main():
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description="CLI client for the Edge Catalog REST API")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -38,7 +41,7 @@ def main():
     catalog.add_argument("--signal")
     catalog.add_argument("--category")
     catalog.add_argument("--q")
-    for name in ("me", "history", "recommend", "demo", "logout"):
+    for name in ("me", "history", "recommend", "demo", "logout", "recommendation-status", "rebuild-recommendations", "cf-demo"):
         sub.add_parser(name)
     raw = sub.add_parser("request")
     raw.add_argument("method", choices=["GET", "POST", "PUT", "DELETE"])
@@ -95,7 +98,23 @@ def main():
                     print(path)
                     print_json(response.json())
                 return
-            if args.command == "catalog":
+            if args.command == "cf-demo":
+                credentials = json.loads((ROOT / ".cf-demo-credentials.json").read_text(encoding="utf-8"))
+                # Do not overwrite the user's persisted CLI session in this comparison.
+                for email in credentials["accounts"]:
+                    token = client.post("/auth/token", data={"username": email, "password": credentials["password"]})
+                    token.raise_for_status()
+                    client.headers["Authorization"] = f"Bearer {token.json()['access_token']}"
+                    result = client.get("/recommendations?limit=5")
+                    result.raise_for_status()
+                    body = result.json()
+                    print_json({"account": email, "method": body["method"], "fallback_reason": body["fallback_reason"], "items": [{"name": item["name"], "recommendation": item["recommendation"]} for item in body["items"]]})
+                return
+            if args.command == "rebuild-recommendations":
+                response = client.post("/recommendations/rebuild")
+            elif args.command == "recommendation-status":
+                response = client.get("/recommendations/status")
+            elif args.command == "catalog":
                 params = {
                     key: getattr(args, key)
                     for key in ("signal", "category", "q")
