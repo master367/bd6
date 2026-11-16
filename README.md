@@ -1,234 +1,102 @@
 # Edge Drowsiness Model Catalog
 
-Учебная рекомендательная платформа для Assignment 6 и Final Project, Advanced Databases.
-Пользователь выбирает методы анализа временных рядов для детекции сонливости с учётом
-типа сигнала, бюджета памяти и допустимой задержки на заданном эталонном устройстве.
+A web application for the Advanced Databases final project. It helps users explore and compare drowsiness detection models and receive recommendations based on their preferences and device limits.
 
-Основной результат: MongoDB с валидаторами и обоснованными индексами, REST API на FastAPI,
-CLI, аналитические агрегации и воспроизводимый эксперимент с `explain`.
-Все модели в генераторе и их характеристики **синтетические**. Нейросети не обучались;
-приложение не выполняет детекцию сонливости по камере или датчикам.
+Built with Python, FastAPI, MongoDB, and a plain HTML/CSS/JavaScript frontend. The catalog uses synthetic model data and performance values for demonstration.
 
-## Что реализовано
+## Features
 
-- Регистрация, вход, Argon2id-хеширование паролей, JWT на 30 минут.
-- Профили пользователей и вложенные требования к устройству.
-- CRUD каталога: изменения доступны администраторам; удаление архивирует запись.
-- Полнотекстовый поиск, категории, сигналы, фильтры памяти и задержки.
-- История взаимодействий с курсорной пагинацией и изоляцией пользователей.
-- Защита от повторной записи события по `request_id`, в том числе при гонке запросов.
-- MongoDB `$jsonSchema`, уникальные, составные, multikey и text-индексы.
-- Агрегации популярности, последних пользовательских оценок, активности и статистики модели.
-- Item-based collaborative filtering по совместным предпочтениям пользователей; ограничения
-  устройства применяются ко всем результатам. Для нового пользователя есть запасной подбор.
-- Последняя явная оценка, ограниченный вес просмотров и исключение выбранных/оценённых моделей.
-- Кеш сходств с TTL и инвалидизацией после действий; административный пересчёт через API.
-- Генератор тестовых данных, CLI и тесты на настоящей MongoDB.
-- Минималистичный веб-интерфейс: каталог, подбор по устройству, история и аналитика.
-  Вход и регистрация, сохранения, выбор и оценки работают через тот же REST API.
-  Администратору доступны создание, редактирование и архивирование моделей.
+- User registration and login with JWT authentication and Argon2id password hashing.
+- Searchable model catalog with signal, category, memory, and latency filters.
+- Administrator tools to create, edit, and archive models.
+- User profiles, saved models, ratings, and interaction history.
+- Item-based collaborative filtering with device constraints, cached similarities, and a fallback for new users.
+- MongoDB schema validation, indexes, aggregation analytics, and cursor pagination.
 
-## Final Project: локальный запуск и демонстрация
+## Local setup
 
-Для уже настроенного окружения и работающей локальной MongoDB:
-
-```powershell
-.\.venv\Scripts\python.exe -m app.manage seed-cf
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-`seed-cf` добавляет 120 пользователей, 60 моделей и 12 000 событий с различимыми
-предпочтениями, сохраняя прежние записи. Повторный запуск с теми же параметрами
-не дублирует записи. Запускайте seed до старта API; если API уже работает, перезапустите
-его или вызовите `rebuild-recommendations` от администратора. Для первого запуска с нуля
-сначала выполните создание окружения и `scripts/init_env.py` из следующего раздела.
-
-Откройте <http://127.0.0.1:8000/#recommendations>. Три демонстрационных аккаунта
-имеют одинаковые параметры устройства:
-
-| Аккаунт | Демонстрация |
-| --- | --- |
-| `cf-alice@example.com` | Предпочтения моделей Compact |
-| `cf-boris@example.com` | Предпочтения моделей Temporal |
-| `cf-new@example.com` | Новый пользователь без истории, подбор по устройству |
-
-Случайный учебный пароль записан только в локальном `.cf-demo-credentials.json`.
-Не добавляйте этот файл в сдаваемый архив. Сравнение через настоящий HTTP без вывода пароля:
-
-```powershell
-.\.venv\Scripts\python.exe -m app.cli cf-demo
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\ruff.exe check app tests scripts
-.\.venv\Scripts\python.exe scripts/benchmark_recommendations.py
-.\.venv\Scripts\python.exe scripts/evaluate_recommendations.py
-```
-
-Бенчмарк самостоятельно запускает временные локальные API на свободных портах,
-проверяет 10 000 / 100 000 / 1 000 000 событий и очищает только созданные им временные
-базы. Рабочая `edge_catalog` не изменяется. Результаты: `output/performance/` (JSON,
-CSV, исходные планы запросов). Оценка качества сохраняется в `output/evaluation.json`.
-Она использует статический leave-one-item-out на синтетических данных, а не реальных
-пользователей. Инструкции необязательного построения графиков находятся в документации.
-
-Алгоритм, правила предпочтений, API, кеш, сценарий защиты и ограничения:
-[docs/final-project.md](docs/final-project.md). Прежние отчёты относятся к предыдущему
-состоянию проекта; их содержимое этим обновлением не менялось.
-
-## Быстрый запуск в Windows PowerShell
-
-Требуется Python 3.12+ и доступный MongoDB 8.x. Команды выполняются из корня проекта.
-Если `.venv` уже существует, шаг создания окружения пропускается.
+Requirements: Python 3.12+ and a running MongoDB 8.x instance. Run these commands from the project root in Windows PowerShell:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.lock
-.\.venv\Scripts\python.exe scripts\init_env.py
-.\.venv\Scripts\python.exe -m app.manage init-db
-.\.venv\Scripts\python.exe -m app.manage seed --users 100 --models 60 --interactions 100000
+.\.venv\Scripts\python.exe scripts/init_env.py
+.\.venv\Scripts\python.exe -m app.manage seed-cf
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-В `requirements.lock` закреплено проверенное окружение, включая инструменты тестирования.
-Файлы `requirements.txt` и `requirements-dev.txt` описывают допустимые диапазоны зависимостей
-для осознанного обновления окружения.
+The setup script creates `.env` with random local secrets and preserves an existing file. If needed, update `MONGODB_URI` in `.env` before seeding. The default database is `edge_catalog`.
 
-Если MongoDB слушает другой адрес, измените `MONGODB_URI` в `.env`.
-`scripts/init_env.py` создаёт случайные секреты и сохраняет существующий `.env`.
-База приложения называется `edge_catalog`; другие базы не изменяются.
+`seed-cf` initializes the database and adds 120 users, 60 models, and 12,000 interactions. Repeating it with the same parameters preserves existing records. Seed before starting the API, or restart the API afterwards to refresh recommendations.
 
-- Сайт: <http://127.0.0.1:8000/> (в Docker по умолчанию <http://127.0.0.1:8001/>).
-- Swagger UI: <http://127.0.0.1:8000/docs>
-- OpenAPI: <http://127.0.0.1:8000/openapi.json>
-- Проверка подключения: <http://127.0.0.1:8000/health>
+- [Web application](http://127.0.0.1:8000/)
+- [Swagger API documentation](http://127.0.0.1:8000/docs)
+- [Health check](http://127.0.0.1:8000/health)
 
-Сайт отдаётся самим FastAPI из `app/static`; Node.js и отдельный frontend-сервер не нужны.
-Для существующего окружения достаточно запустить Uvicorn командой выше. После обновления
-кода перезапустите сервер. Для Docker пересоберите образ: `docker compose up -d --build --wait`.
-В браузере зарегистрируйте свой аккаунт, откройте «Подбор» и настройте устройство.
-Для учебных данных эталонное устройство — `synthetic-edge-v1`.
-JWT хранится в `sessionStorage` текущей вкладки; кнопка «Выйти» удаляет сеанс.
-Открытие карточки авторизованным пользователем записывает просмотр; «Сохранить»,
-«Выбрать модель» и оценка создают события в `interactions`. Подбор не запускает детектор.
+FastAPI serves the frontend directly. No separate frontend server is required.
 
-## Демонстрация через CLI
+## Demo
 
-Откройте второй терминал в корне проекта при работающем API:
+Sign in using one of the seeded accounts. Their shared password is stored locally in `.cf-demo-credentials.json`.
+
+| Account | Example |
+| --- | --- |
+| `cf-alice@example.com` | Preference for Compact models |
+| `cf-boris@example.com` | Preference for Temporal models |
+| `cf-new@example.com` | New user without interaction history |
+
+The accounts share the same device settings, allowing their recommendations to be compared. For a new account, configure the device profile using `synthetic-edge-v1` as the reference device.
+
+With the API running, compare the demo accounts from another terminal:
 
 ```powershell
-.\.venv\Scripts\python.exe -m app.cli demo
-.\.venv\Scripts\python.exe -m app.cli catalog --signal eeg
-.\.venv\Scripts\python.exe -m app.cli history
-.\.venv\Scripts\python.exe -m app.cli recommend
-.\.venv\Scripts\python.exe -m app.cli request GET /analytics/ratings
+.\.venv\Scripts\python.exe -m app.cli cf-demo
 ```
 
-`demo` читает локальный `.demo-credentials.json`, входит как демонстрационный администратор,
-показывает каталог, записывает **одно новое событие просмотра** и запрашивает историю,
-подбор и аналитику. Каждый запуск добавляет одно событие, поэтому общий счётчик растёт.
-Пароль и токен в вывод не попадают.
-
-Учётная запись демо-администратора: `demo-admin@example.com`. Случайный пароль находится
-в локальном `.demo-credentials.json`. Для Swagger нажмите **Authorize**, в поле `username`
-укажите email. Все демо-пользователи имеют один случайный учебный пароль из `.env`.
-Создавать собственные независимые учётные записи можно через `/auth/register`.
+To create an administrator account:
 
 ```powershell
-.\.venv\Scripts\python.exe -m app.cli login --email your-email@example.com
-.\.venv\Scripts\python.exe -m app.cli request PUT /users/me --json-file examples/profile.json
-.\.venv\Scripts\python.exe -m app.cli logout
+.\.venv\Scripts\python.exe -m app.manage create-admin --email admin@example.com
 ```
 
-Для создания отдельного администратора:
+The command prompts for a password. Administrators can manage models through the web interface.
 
-```powershell
-.\.venv\Scripts\python.exe -m app.manage create-admin --email owner@example.com
-```
+## Docker setup
 
-Команда запросит пароль и создаст новую учётную запись. Существующий аккаунт не заменяется.
-`.env`, `.demo-credentials.json` и `.cli-session.json` исключены из Git; их не следует
-включать в сдаваемый архив. При передаче проекта новый пользователь запускает `init_env.py`.
-
-## Проверки и эксперимент с индексом
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\ruff.exe check app tests scripts
-.\.venv\Scripts\python.exe -m app.manage benchmark
-```
-
-Для экспорта проверяемых материалов при запущенном API:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q --junitxml=output/test-results.xml
-.\.venv\Scripts\python.exe scripts\export_evidence.py
-```
-
-Экспортируются текущие API-ответы, валидаторы, индексы и итог тестов в `output/`,
-а статическая OpenAPI-схема — в `docs/openapi.json`. Пароли и токены не экспортируются.
-
-Интеграционные тесты создают отдельные случайные базы `edge_catalog_test_<uuid>` и удаляют
-только эти базы после проверки. Для другого тестового сервера задайте `MONGODB_TEST_URI`.
-Тесты без сервера: `python -m pytest -q -m "not integration"`.
-
-Эксперимент сохраняет исходные планы и статистику в `output/benchmark.json`. Он сравнивает
-принудительный полный просмотр и индекс `user_recent` на одних данных, пять раз для каждого
-пути; индексы не удаляются. Это сравнение путей доступа, а не нагрузочный тест всего API.
-
-В проверенном запуске на 100 000 событиях: **100 000 против 20 просмотренных документов**;
-оба запроса вернули одинаковые 20 записей. Нулевые миллисекунды в `explain` означают
-ограничение разрешения измерения, а не отсутствие времени выполнения.
-
-## Docker как альтернативный способ запуска
-
-Весь стек и тесты можно запускать внутри Docker. По умолчанию API публикуется на
-`127.0.0.1:8001`, а MongoDB — на `127.0.0.1:27018`, поэтому локальный запуск на портах
-8000/27017 может работать одновременно. Порты меняются через `API_PORT` и `MONGO_PORT` в `.env`.
+Requires Docker Compose and a local `.env` file. If needed, create it first with `python scripts/init_env.py`.
 
 ```powershell
 docker compose up -d --build --wait
-docker compose exec api python -m app.manage seed --users 100 --models 60 --interactions 100000
-docker compose run --rm tests
-docker compose exec api python -m app.manage benchmark
-docker compose exec api python -m app.cli demo
-docker compose exec api python scripts/export_evidence.py
+docker compose exec api python -m app.manage seed-cf
+docker compose restart api
 ```
 
-Swagger контейнерной версии: <http://127.0.0.1:8001/docs>.
-MongoDB Compass можно подключить к `mongodb://127.0.0.1:27018/`, база `edge_catalog`.
-Данные MongoDB сохраняются в именованном томе `bd6_mongo_data`.
-Сервисы опубликованы только на `127.0.0.1`; конфигурация предназначена для локальной защиты.
-В контейнерном варианте пароль демо хранится внутри контейнера в `.demo-credentials.json`.
-Для воспроизводимого пароля seed передаётся `DEMO_PASSWORD` из `.env`.
+Open the [web application](http://127.0.0.1:8001/) or [Swagger UI](http://127.0.0.1:8001/docs). MongoDB is available at `mongodb://127.0.0.1:27018/`. The demo credentials file is inside the API container; view it with `docker compose exec api cat .cf-demo-credentials.json`.
 
-Результаты тестов, измерений, CLI и экспорта доступны на хосте в `output/docker/`.
-Тестовый сервис монтирует каталог `tests/` только для чтения и запускает проверки против
-контейнерной MongoDB. После окончания тестовый контейнер удаляется, а временные тестовые
-базы очищает сама тестовая фикстура. Рабочая `edge_catalog` тестами не очищается.
+Stop the services with `docker compose stop`. Database records persist in a Docker volume.
 
-Остановить стек с сохранением данных:
+## Tests and benchmarks
+
+The locked dependencies include pytest and Ruff. Integration tests require MongoDB and use separate temporary databases.
 
 ```powershell
-docker compose stop
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check app tests scripts
+.\.venv\Scripts\python.exe -m app.manage benchmark
+.\.venv\Scripts\python.exe scripts/benchmark_recommendations.py
+.\.venv\Scripts\python.exe scripts/evaluate_recommendations.py
 ```
 
-После пересоздания контейнера API повторите команду seed: учётные записи и события в томе
-сохранятся, а локальный файл демо-доступа внутри нового API-контейнера будет восстановлен.
+To run tests without MongoDB, use `.\.venv\Scripts\python.exe -m pytest -q -m "not integration"`. For Docker-based tests, use `docker compose run --rm tests` after starting the stack.
 
-## Документация
+Benchmarks and evaluation results are generated in `output/`. Recommendation evaluation uses synthetic data and does not measure real-world recommendation quality.
 
-Готовый отчёт: `output/doc/Assignment_6_Zhalgasov_Adilbek_CSE-2602M.docx`.
-15 страниц на английском, 9 реальных скриншотов локального Compass; в начале указаны
-Zhalgasov Adilbek и CSE-2602M. Отдельного титульного листа нет.
+## Project structure
 
-- [Схема, запросы, индексы и компромиссы](docs/database.md)
-- [Проектное предложение и связь с диссертацией](docs/proposal.md)
-- [Описание API и ошибок](docs/api.md)
-- [Результаты проверки и сценарий защиты](docs/verification.md)
-- [Содержание отчёта по Assignment 6](docs/assignment-report.md)
-- [Проверка полного Docker-стека](docs/docker-verification.md)
-- [Сопоставление с требованиями Assignment 6](docs/assignment-checklist.md)
-- [JSON для всех ручек и изменения MongoDB](docs/request-bodies-guide.md)
-- [Сценарий защиты и ответы на вопросы](docs/defense-guide.md)
-
-Реализация API находится в `app/main.py`, схема MongoDB — в `app/db.py`,
-управление данными и эксперимент — в `app/manage.py`.
+| Path | Contents |
+| --- | --- |
+| `app/` | REST API, database schema, recommendation engine, CLI, and web interface |
+| `scripts/` | Environment setup, benchmarks, and evaluation tools |
+| `tests/` | Unit and integration tests |
+| `examples/` | Example JSON request bodies |
+| `compose.yaml` | Docker services for the API, MongoDB, and tests |
